@@ -658,10 +658,10 @@ static int appleals_platform_remove(struct platform_device *pdev)
 
 	kfree(als_dev);
 
-	return 0;
+	return;
 
 error:
-	return rc;
+	return;
 }
 
 static const struct platform_device_id appleals_platform_ids[] = {
