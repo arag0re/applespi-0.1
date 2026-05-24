@@ -25,7 +25,7 @@ As root, do the following (all MacBook's and MacBook Pro's except MacBook8,1 (20
 echo -e "\n# applespi\napplespi\nspi_pxa2xx_platform\nintel_lpss_pci" >> /etc/initramfs-tools/modules
 
 apt install dkms
-git clone https://github.com/roadrunner2/macbook12-spi-driver.git /usr/src/applespi-0.1
+git clone https://github.com/arag0re/applespi-0.1.git /usr/src/applespi-0.1
 dkms install -m applespi -v 0.1
 ```
 
@@ -34,8 +34,42 @@ If you're on a MacBook8,1 (2015):
 echo -e "\n# applespi\napplespi\nspi_pxa2xx_platform\nspi_pxa2xx_pci" >> /etc/initramfs-tools/modules
 
 apt install dkms
-git clone https://github.com/roadrunner2/macbook12-spi-driver.git /usr/src/applespi-0.1
+git clone https://github.com/arag0re/applespi-0.1.git /usr/src/applespi-0.1
 dkms install -m applespi -v 0.1
+```
+
+after reboot you need to unbind and bind the usb
+-device again with: 
+```
+echo '1-3' | sudo tee /sys/bus/usb/drivers/usb/unbind 
+echo '1-3' | sudo tee /sys/bus/usb/drivers/usb/bind
+```
+
+I reccomend setting up a systemd-service. Create a file with nano at /etc/systemd/system/ with name touchbar-rebind.service:
+
+```
+sudo nano /etc/systemd/system/touchbar-rebind.service
+```
+with the following content
+```
+[Unit]
+Description=Re-enable MacBook TouchBar
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 2
+ExecStart=/bin/sh -c "echo '1-3' > /sys/bus/usb/drivers/usb/unbind"
+ExecStart=/bin/sh -c "echo '1-3' > /sys/bus/usb/drivers/usb/bind"
+RemainAfterExit=yes
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
+```
+enable the service with
+```
+sudo systemctl enable touchbar-rebind.service
 ```
 
 Akmods module (RPM Fusion / Red Hat & co):
